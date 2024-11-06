@@ -1,8 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
 
-func commandHelp() error {
+	"github.com/rroyo/pokedexcli/internal/pokeapi"
+)
+
+func commandHelp(cfg *pokeapi.LocationArea) (*pokeapi.LocationArea, error) {
 
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:\n")
@@ -13,5 +17,5 @@ func commandHelp() error {
 
 	fmt.Println("")
 
-	return nil
+	return cfg, nil
 }

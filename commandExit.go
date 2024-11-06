@@ -1,8 +1,12 @@
 package main
 
-import "os"
+import (
+	"os"
 
-func commandExit() error {
+	"github.com/rroyo/pokedexcli/internal/pokeapi"
+)
+
+func commandExit(cfg *pokeapi.LocationArea) (*pokeapi.LocationArea, error) {
 	os.Exit(0)
-	return nil
+	return cfg, nil
 }
