@@ -5,32 +5,21 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/rroyo/pokedexcli/internal/pokeapi"
 )
 
-type cliCommand struct {
-	name        string
-	description string
-	callback    func(*pokeapi.LocationArea) (*pokeapi.LocationArea, error)
+type config struct {
+	pokeapiClient        pokeapi.pokeapiClient
+	nextLocationsURL     *string
+	previousLocationsURL *string
 }
 
-func startRepl() {
-	scanner := bufio.NewScanner(os.Stdin)
-	nextURL := "https://pokeapi.co/api/v2/location-area/?offset=0&limit=20"
-	var previousURL *string
-
-	cfg := pokeapi.LocationArea{
-		Next:      &nextURL,
-		Previous:  previousURL,
-		Locations: nil,
-	}
-
+func startRepl(cfg *config) {
+	reader := bufio.NewScanner(os.Stdin)
 	for {
-		fmt.Print("Pokedex > ")
-		scanner.Scan()
+		fmt.Prinf("Pokedex > ")
+		reader.Scan()
 
-		words := cleanInput(scanner.Text())
+		words := cleanInput(reader.Text())
 		if len(words) == 0 {
 			continue
 		}
@@ -39,17 +28,14 @@ func startRepl() {
 
 		command, exists := getCommands()[commandName]
 		if exists {
-			nav, err := command.callback(&cfg)
+			err := command.callback(cfg)
 			if err != nil {
-				fmt.Println(err)
-				continue
+				fmt.Println("Unknow command")
+
 			}
-
-			cfg.Next = nav.Next
-			cfg.Previous = nav.Previous
-
+			continue
 		} else {
-			fmt.Println("Unknown command")
+			fmt.Println("Unknow command")
 			continue
 		}
 	}
@@ -61,6 +47,12 @@ func cleanInput(text string) []string {
 	return words
 }
 
+type cliCommand struct {
+	name        string
+	description string
+	callbak     func(*config) error
+}
+
 func getCommands() map[string]cliCommand {
 	return map[string]cliCommand{
 		"help": {
@@ -68,20 +60,20 @@ func getCommands() map[string]cliCommand {
 			description: "Displays a help message",
 			callback:    commandHelp,
 		},
+		"map": {
+			name:        "map",
+			description: "Get the next page of locations",
+			callback:    commandMapf,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Get the previous page of locations",
+			callback:    commandMapb,
+		},
 		"exit": {
 			name:        "exit",
 			description: "Exit the Pokedex",
-			callback:    commandExit,
-		},
-		"map": {
-			name:        "map",
-			description: "Show the next 20 areas",
-			callback:    commandMap,
-		},
-		"bmap": {
-			name:        "bmap",
-			description: "Show the previous 20 areas",
-			callback:    commandBmap,
+			callback:    command,
 		},
 	}
 }
